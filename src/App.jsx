@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { DIRECTION, LINE, fetchNext } from './api/havag.js';
+import InstallBanner from './InstallBanner.jsx';
 import { delayMinutes, formatClock, formatClockSeconds, formatCountdown } from './format.js';
 
 const REFRESH_MS = 30_000;
@@ -105,6 +106,8 @@ export default function App() {
                     Keine Verbindung · Stand {formatClockSeconds(data.fetchedAt)}
                 </p>
             )}
+
+            <InstallBanner />
         </main>
     );
 }
