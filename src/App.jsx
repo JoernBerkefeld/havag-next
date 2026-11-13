@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { DIRECTION, LINE, fetchNext } from './api/havag.js';
+import { fetchNext } from './api/havag.js';
 import InstallBanner from './InstallBanner.jsx';
 import { delayMinutes, formatClock, formatClockSeconds, formatCountdown } from './format.js';
+import { MODES } from './places.js';
+import { usePlace } from './usePlace.js';
 
 const REFRESH_MS = 30_000;
+const MODE_LABELS = { auto: 'Auto', home: 'Zuhause', kita: 'Kita' };
 
 export default function App() {
-    const [data, setData] = useState(null); // { next, skipped, fetchedAt }
+    const { mode, setMode, place, hasPosition, locationFailed } = usePlace();
+    const [data, setData] = useState(null); // { next, skipped, fetchedAt, placeKey }
     const [error, setError] = useState(false);
     const [now, setNow] = useState(() => Date.now());
     const controller = useRef(null);
@@ -16,15 +20,16 @@ export default function App() {
         const ctrl = new AbortController();
         controller.current = ctrl;
         try {
-            const result = await fetchNext(ctrl.signal);
-            setData({ ...result, fetchedAt: Date.now() });
+            const result = await fetchNext(place, ctrl.signal);
+            setData({ ...result, fetchedAt: Date.now(), placeKey: place.key });
             setError(false);
         } catch (e) {
             if (e.name !== 'AbortError') setError(true);
         }
-    }, []);
+    }, [place]);
 
-    // Refresh on open, every 30 s while visible, and when the app returns to the foreground.
+    // Refresh on open, whenever the place changes, every 30 s while visible, and when the app
+    // returns to the foreground.
     useEffect(() => {
         let timer;
         const start = () => {
@@ -51,20 +56,52 @@ export default function App() {
         return () => clearInterval(id);
     }, []);
 
-    const next = data?.next;
+    // Never show data that belongs to the other place while the new one loads.
+    const view = data?.placeKey === place.key ? data : null;
+    const next = view?.next;
     const effectiveMs = next ? (next.actualMs ?? next.plannedMs) : null;
     const delay = next ? delayMinutes(next.plannedMs, next.actualMs) : null;
 
+    let modeHint = null;
+    if (mode === 'auto') {
+        modeHint = hasPosition
+            ? `automatisch: ${place.label}`
+            : locationFailed
+              ? 'Standort nicht verfügbar · zeige Zuhause'
+              : 'Standort wird ermittelt …';
+    }
+
     return (
         <main className="flex h-full flex-col items-center justify-center gap-6 px-4 text-center text-white select-none">
-            <h1 className="text-xl font-semibold tracking-wide text-gray-400">
-                Linie {LINE} → {DIRECTION}
-            </h1>
+            <div className="flex flex-col items-center gap-2">
+                <div
+                    role="group"
+                    aria-label="Ort"
+                    className="flex gap-1 rounded-full bg-gray-900 p-1 text-sm"
+                >
+                    {MODES.map((m) => (
+                        <button
+                            key={m}
+                            type="button"
+                            aria-pressed={mode === m}
+                            onClick={() => setMode(m)}
+                            className={`rounded-full px-4 py-1.5 font-medium ${
+                                mode === m ? 'bg-gray-700 text-white' : 'text-gray-500'
+                            }`}
+                        >
+                            {MODE_LABELS[m]}
+                        </button>
+                    ))}
+                </div>
+                <p className="h-4 text-xs text-gray-500">{modeHint}</p>
+            </div>
 
-            {!data && !error && <p className="text-2xl text-gray-400">Lade …</p>}
-            {!data && error && <p className="text-2xl text-red-400">Keine Verbindung</p>}
+            <h1 className="text-xl font-semibold tracking-wide text-gray-400">{place.heading}</h1>
 
-            {data && !next && <p className="text-3xl text-gray-300">Keine Abfahrt gefunden</p>}
+            {!view && !error && <p className="text-2xl text-gray-400">Lade …</p>}
+            {!view && error && <p className="text-2xl text-red-400">Keine Verbindung</p>}
+
+            {view && !next && <p className="text-3xl text-gray-300">Keine Abfahrt gefunden</p>}
 
             {next && (
                 <>
@@ -95,15 +132,15 @@ export default function App() {
                 </>
             )}
 
-            {data?.skipped.length > 0 && (
+            {view?.skipped.length > 0 && (
                 <p className="text-lg text-red-400">
-                    {data.skipped.map((d) => `${formatClock(d.plannedMs)} fällt aus`).join(' · ')}
+                    {view.skipped.map((d) => `${formatClock(d.plannedMs)} fällt aus`).join(' · ')}
                 </p>
             )}
 
-            {data && error && (
+            {view && error && (
                 <p className="text-lg text-amber-400">
-                    Keine Verbindung · Stand {formatClockSeconds(data.fetchedAt)}
+                    Keine Verbindung · Stand {formatClockSeconds(view.fetchedAt)}
                 </p>
             )}
 

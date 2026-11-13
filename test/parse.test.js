@@ -125,9 +125,12 @@ test('formatClock uses Halle time', () => {
 });
 
 test('buildRequest uses Halle date/time and the stop id', () => {
-    const body = JSON.parse(buildRequest(new Date(Date.UTC(2026, 10, 13, 8, 30, 5))));
+    const body = JSON.parse(buildRequest(new Date(Date.UTC(2026, 10, 13, 8, 30, 5)), '3937'));
     const req = body.svcReqL[0].req;
     assert.equal(req.date, '20261113');
     assert.equal(req.time, '093005');
     assert.equal(req.stbLoc.extId, '3937');
+    const other = JSON.parse(buildRequest(new Date(), '5237'));
+    assert.equal(other.svcReqL[0].req.stbLoc.extId, '5237');
+    assert.equal(other.svcReqL[0].req.stbLoc.lid, 'A=1@L=5237@');
 });

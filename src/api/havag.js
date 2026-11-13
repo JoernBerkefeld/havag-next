@@ -3,9 +3,6 @@ import { parseDepartures, selectNext } from './parse.js';
 // Public INSA (Sachsen-Anhalt) HAFAS endpoint and the public client key that the open-source
 // hafas-client library uses as well. Nothing here is a secret.
 const ENDPOINT = 'https://reiseauskunft.insa.de/bin/mgate.exe';
-const STOP_ID = '3937'; // Halle (Saale), Betriebshof Freiimfelder Str.
-export const LINE = '10';
-export const DIRECTION = 'Soltauer Str.';
 
 /**
  * @param {Date} now current time
@@ -34,9 +31,10 @@ function berlinParts(now) {
 
 /**
  * @param {Date} now current time
+ * @param {string} stopId INSA stop id
  * @returns {string} request body
  */
-export function buildRequest(now) {
+export function buildRequest(now, stopId) {
     const { date, time } = berlinParts(now);
     return JSON.stringify({
         lang: 'de',
@@ -48,7 +46,7 @@ export function buildRequest(now) {
                     type: 'DEP',
                     date,
                     time,
-                    stbLoc: { type: 'S', extId: STOP_ID, lid: `A=1@L=${STOP_ID}@` },
+                    stbLoc: { type: 'S', extId: stopId, lid: `A=1@L=${stopId}@` },
                     dur: 60,
                     maxJny: 40,
                 },
@@ -65,18 +63,23 @@ export function buildRequest(now) {
  * Fetches live data. The body is sent as text/plain on purpose: the endpoint answers cross-origin
  * requests, but not the preflight that a JSON content type would trigger.
  *
+ * @param {{stopId: string, line: string, direction: string}} place stop, line and direction
  * @param {AbortSignal} [signal] abort signal
  * @returns {Promise<{next: object|null, skipped: object[]}>} next departure of the line
  */
-export async function fetchNext(signal) {
+export async function fetchNext(place, signal) {
     const res = await fetch(ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
-        body: buildRequest(new Date()),
+        body: buildRequest(new Date(), place.stopId),
         cache: 'no-store',
         signal,
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const departures = parseDepartures(await res.json());
-    return selectNext(departures, { line: LINE, direction: DIRECTION, nowMs: Date.now() });
+    return selectNext(departures, {
+        line: place.line,
+        direction: place.direction,
+        nowMs: Date.now(),
+    });
 }
