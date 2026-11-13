@@ -27,14 +27,11 @@ export function formatClockSeconds(ms) {
 
 /**
  * @param {number} diffMs milliseconds until departure
- * @returns {string} m:ss countdown, or "jetzt" once due
+ * @returns {string} "in N min" (whole minutes, rounded down), or "sofort" below one minute
  */
 export function formatCountdown(diffMs) {
-    if (diffMs <= 0) return 'jetzt';
-    const total = Math.floor(diffMs / 1000);
-    const m = Math.floor(total / 60);
-    const s = String(total % 60).padStart(2, '0');
-    return `${m}:${s}`;
+    const minutes = Math.floor(diffMs / 60_000);
+    return minutes >= 1 ? `in ${minutes} min` : 'sofort';
 }
 
 /**

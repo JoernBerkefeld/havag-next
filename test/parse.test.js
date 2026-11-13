@@ -111,10 +111,12 @@ test('delayMinutes rounds and allows early trams', () => {
 });
 
 test('formatCountdown', () => {
-    assert.equal(formatCountdown(7 * 60_000 + 23_000), '7:23');
-    assert.equal(formatCountdown(5_000), '0:05');
-    assert.equal(formatCountdown(0), 'jetzt');
-    assert.equal(formatCountdown(-1000), 'jetzt');
+    assert.equal(formatCountdown(7 * 60_000 + 23_000), 'in 7 min');
+    assert.equal(formatCountdown(119_999), 'in 1 min');
+    assert.equal(formatCountdown(60_000), 'in 1 min');
+    assert.equal(formatCountdown(59_999), 'sofort');
+    assert.equal(formatCountdown(0), 'sofort');
+    assert.equal(formatCountdown(-1000), 'sofort');
 });
 
 test('formatClock uses Halle time', () => {

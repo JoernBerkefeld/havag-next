@@ -74,9 +74,7 @@ export default function App() {
                         {formatClock(effectiveMs)}
                     </div>
                     <div className="text-5xl font-semibold text-gray-100 tabular-nums">
-                        {effectiveMs - now > 0
-                            ? `in ${formatCountdown(effectiveMs - now)}`
-                            : formatCountdown(effectiveMs - now)}
+                        {formatCountdown(effectiveMs - now)}
                     </div>
                     <div className="text-2xl">
                         {delay == null && (
