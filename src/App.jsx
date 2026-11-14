@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchNext } from './api/havag.js';
 import InstallBanner from './InstallBanner.jsx';
+import LineBadge from './LineBadge.jsx';
 import { delayMinutes, formatClock, formatClockSeconds, formatCountdown } from './format.js';
 import { HOME_DIRECTIONS, MODES } from './places.js';
 import { usePlace } from './usePlace.js';
@@ -99,7 +100,14 @@ export default function App() {
             </div>
 
             <h1 className="text-xl font-semibold tracking-wide text-gray-400">
-                {next?.route ? `Linie ${next.line} → ${place.destination}` : place.heading}
+                {next?.route ? (
+                    <span className="inline-flex items-center gap-3">
+                        <LineBadge line={next.line} />
+                        <span>→ {place.destination}</span>
+                    </span>
+                ) : (
+                    place.heading
+                )}
             </h1>
 
             {!view && !error && <p className="text-2xl text-gray-400">Lade …</p>}
