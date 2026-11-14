@@ -40,9 +40,16 @@ test('placeFor: at home the chosen direction, at the Kita always the way home', 
     assert.equal(placeFor('kita', 'hbf'), PLACES.kita);
 });
 
-test('the home stop serves both directions from the same stop and has its own key', () => {
-    assert.equal(PLACES.homeHbf.stopId, PLACES.home.stopId);
-    assert.equal(PLACES.homeHbf.direction, 'Hauptbahnhof');
+test('the way to the station compares the two home stops and their walks', () => {
+    const [tenStop, sevenStop] = PLACES.homeHbf.routes;
+    assert.deepEqual(
+        [tenStop.stopId, tenStop.line, tenStop.direction, tenStop.walkMinutes],
+        ['3937', '10', 'Hauptbahnhof', 2]
+    );
+    assert.deepEqual(
+        [sevenStop.stopId, sevenStop.line, sevenStop.direction, sevenStop.walkMinutes],
+        ['5095', '7', 'Kröllwitz', 7]
+    );
     assert.notEqual(PLACES.homeHbf.key, PLACES.home.key);
 });
 

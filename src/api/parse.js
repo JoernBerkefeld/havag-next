@@ -27,7 +27,7 @@ export function toTimestamp(date, time, tzOffsetMinutes = 60) {
  * Reads the departures out of a raw StationBoard response.
  *
  * @param {object} raw parsed JSON response of the HAFAS mgate endpoint
- * @returns {{line: string, direction: string, plannedMs: number, actualMs: number|null, cancelled: boolean}[]} departures
+ * @returns {{line: string, direction: string, plannedMs: number, actualMs: number|null, cancelled: boolean, jid: string|null, date: string}[]} departures
  */
 export function parseDepartures(raw) {
     const svc = raw?.svcResL?.[0];
@@ -47,6 +47,8 @@ export function parseDepartures(raw) {
                 plannedMs: toTimestamp(jny.date, stop.dTimeS, tz),
                 actualMs: stop.dTimeR ? toTimestamp(jny.date, stop.dTimeR, tz) : null,
                 cancelled: Boolean(stop.dCncl),
+                jid: jny.jid ?? null,
+                date: jny.date,
             },
         ];
     });

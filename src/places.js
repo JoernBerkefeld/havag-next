@@ -11,14 +11,29 @@ export const PLACES = {
         lat: 51.484827,
         lon: 11.994756,
     },
-    // Same stop as home, other direction: shown only while the home place is active.
+    // The way to the main station from home: two stops with a different walk, compared by when
+    // each tram reaches the station. Shown only while the home place is active.
     homeHbf: {
         key: 'home-hbf',
         label: 'Zuhause',
-        stopId: '3937',
-        line: '10',
-        direction: 'Hauptbahnhof',
-        heading: 'Linie 10 → Hauptbahnhof',
+        heading: 'Zum Hauptbahnhof',
+        destination: 'Hauptbahnhof',
+        routes: [
+            {
+                stopId: '3937',
+                stopName: 'Betriebshof Freiimfelder Str.',
+                line: '10',
+                direction: 'Hauptbahnhof',
+                walkMinutes: 2,
+            },
+            {
+                stopId: '5095',
+                stopName: 'Freiimfelder Str.',
+                line: '7',
+                direction: 'Kröllwitz',
+                walkMinutes: 7,
+            },
+        ],
         lat: 51.484827,
         lon: 11.994756,
     },

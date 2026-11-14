@@ -98,7 +98,9 @@ export default function App() {
                 <p className="h-4 text-xs text-gray-500">{modeHint}</p>
             </div>
 
-            <h1 className="text-xl font-semibold tracking-wide text-gray-400">{place.heading}</h1>
+            <h1 className="text-xl font-semibold tracking-wide text-gray-400">
+                {next?.route ? `Linie ${next.line} → ${place.destination}` : place.heading}
+            </h1>
 
             {!view && !error && <p className="text-2xl text-gray-400">Lade …</p>}
             {!view && error && <p className="text-2xl text-red-400">Keine Verbindung</p>}
@@ -131,7 +133,33 @@ export default function App() {
                             </span>
                         )}
                     </div>
+                    {next.route && (
+                        <div className="flex flex-col gap-1 text-lg text-gray-300">
+                            <p>
+                                ab {next.route.stopName} · losgehen{' '}
+                                {formatCountdown(
+                                    effectiveMs - next.route.walkMinutes * 60_000 - now
+                                )}
+                            </p>
+                            {next.arrivalMs && (
+                                <p className="text-gray-400">
+                                    Ankunft {place.destination} {formatClock(next.arrivalMs)}
+                                </p>
+                            )}
+                        </div>
+                    )}
                 </>
+            )}
+
+            {view?.alternative && (
+                <p className="text-base text-gray-500">
+                    Alternativ: Linie {view.alternative.line} ab{' '}
+                    {formatClock(view.alternative.effectiveMs)} ({view.alternative.route.stopName}
+                    {view.alternative.arrivalMs
+                        ? `, Ankunft ${formatClock(view.alternative.arrivalMs)}`
+                        : ''}
+                    )
+                </p>
             )}
 
             {view?.skipped.length > 0 && (

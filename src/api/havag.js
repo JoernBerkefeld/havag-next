@@ -1,4 +1,5 @@
 import { parseDepartures, selectNext } from './parse.js';
+import { chooseBest, parseArrival, reachableDepartures } from './routes.js';
 
 // Public INSA (Sachsen-Anhalt) HAFAS endpoint and the public client key that the open-source
 // hafas-client library uses as well. Nothing here is a secret.
@@ -60,23 +61,85 @@ export function buildRequest(now, stopId) {
 }
 
 /**
- * Fetches live data. The body is sent as text/plain on purpose: the endpoint answers cross-origin
+ * @param {string} jid journey id from a departure
+ * @param {string} date journey date (YYYYMMDD)
+ * @returns {string} request body for the stops of one journey
+ */
+export function buildJourneyRequest(jid, date) {
+    return JSON.stringify({
+        lang: 'de',
+        svcReqL: [{ cfg: { polyEnc: 'GPA' }, meth: 'JourneyDetails', req: { jid, date } }],
+        client: { type: 'IPH', id: 'NASA', v: '4000200', name: 'nasaPROD' },
+        ext: 'NASA.1',
+        ver: '1.44',
+        auth: { type: 'AID', aid: 'nasa-apps' },
+    });
+}
+
+/**
+ * Posts a request. The body is sent as text/plain on purpose: the endpoint answers cross-origin
  * requests, but not the preflight that a JSON content type would trigger.
  *
- * @param {{stopId: string, line: string, direction: string}} place stop, line and direction
+ * @param {string} body request body
  * @param {AbortSignal} [signal] abort signal
- * @returns {Promise<{next: object|null, skipped: object[]}>} next departure of the line
+ * @returns {Promise<object>} parsed response
  */
-export async function fetchNext(place, signal) {
+async function post(body, signal) {
     const res = await fetch(ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
-        body: buildRequest(new Date(), place.stopId),
+        body,
         cache: 'no-store',
         signal,
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const departures = parseDepartures(await res.json());
+    return res.json();
+}
+
+async function fetchRouteOptions(route, destination, signal) {
+    const departures = parseDepartures(await post(buildRequest(new Date(), route.stopId), signal));
+    const reachable = reachableDepartures(departures, route, Date.now());
+    return Promise.all(
+        reachable.map(async (d) => {
+            let arrivalMs = null;
+            try {
+                const raw = await post(buildJourneyRequest(d.jid, d.date), signal);
+                arrivalMs = parseArrival(raw, { stopId: route.stopId, destination });
+            } catch (e) {
+                if (e.name === 'AbortError') throw e;
+            }
+            return { ...d, arrivalMs, route };
+        })
+    );
+}
+
+/**
+ * Of several stops/lines, finds the tram that reaches the destination first when the walk to its
+ * stop is taken into account.
+ *
+ * @param {{destination: string, routes: object[]}} place place with routes
+ * @param {AbortSignal} [signal] abort signal
+ * @returns {Promise<{next: object|null, alternative: object|null, skipped: object[]}>} result
+ */
+async function fetchBestRoute(place, signal) {
+    const lists = await Promise.all(
+        place.routes.map((r) => fetchRouteOptions(r, place.destination, signal))
+    );
+    const { best, alternative } = chooseBest(lists.flat());
+    return { next: best, alternative, skipped: [] };
+}
+
+/**
+ * Fetches live data.
+ *
+ * @param {{stopId?: string, line?: string, direction?: string, routes?: object[]}} place stop,
+ *   line and direction, or several routes to compare
+ * @param {AbortSignal} [signal] abort signal
+ * @returns {Promise<{next: object|null, skipped: object[]}>} next departure of the line
+ */
+export async function fetchNext(place, signal) {
+    if (place.routes) return fetchBestRoute(place, signal);
+    const departures = parseDepartures(await post(buildRequest(new Date(), place.stopId), signal));
     return selectNext(departures, {
         line: place.line,
         direction: place.direction,
