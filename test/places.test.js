@@ -48,7 +48,7 @@ test('the way to the station compares the two home stops and their walks', () =>
     );
     assert.deepEqual(
         [sevenStop.stopId, sevenStop.line, sevenStop.direction, sevenStop.walkMinutes],
-        ['5095', '7', 'Kröllwitz', 7]
+        ['5095', '7', 'Kröllwitz', 9]
     );
     assert.notEqual(PLACES.homeHbf.key, PLACES.home.key);
 });

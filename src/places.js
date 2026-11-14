@@ -31,7 +31,7 @@ export const PLACES = {
                 stopName: 'Freiimfelder Str.',
                 line: '7',
                 direction: 'Kröllwitz',
-                walkMinutes: 7,
+                walkMinutes: 9,
             },
         ],
         lat: 51.484827,
