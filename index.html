@@ -17,13 +17,65 @@
         <meta name="apple-mobile-web-app-title" content="Linie 10" />
         <link rel="icon" type="image/svg+xml" href="/havag-next/icon.svg" />
         <link rel="apple-touch-icon" href="/havag-next/apple-touch-icon.png" />
+
+        <!-- Dark from the first paint, even if the stylesheet or script fails to load. -->
+        <style>
+            html,
+            body {
+                margin: 0;
+                height: 100%;
+                background: #030712;
+                color: #9ca3af;
+                font-family: system-ui, sans-serif;
+            }
+            #boot {
+                text-align: center;
+                padding-top: 40vh;
+                font-size: 1.5rem;
+            }
+            #boot button {
+                margin-top: 1.5rem;
+                padding: 0.75rem 1.5rem;
+                border: 0;
+                border-radius: 999px;
+                background: #374151;
+                color: #fff;
+                font-size: 1.1rem;
+            }
+        </style>
     </head>
     <body>
-        <div id="root"></div>
+        <!-- React replaces everything inside #root when the app starts. -->
+        <div id="root"><div id="boot">Lade …</div></div>
         <script type="module" src="/src/main.jsx"></script>
         <script>
+            // If the app has not started after a few seconds (for example the script failed to
+            // load right after the phone woke up), reload once. If that does not help either,
+            // show a message with a button instead of leaving the screen empty.
+            setTimeout(function () {
+                var boot = document.getElementById('boot');
+                if (!boot) return;
+                var allowed = false;
+                try {
+                    var last = Number(sessionStorage.getItem('bootReloadAt'));
+                    var now = Date.now();
+                    if (!last || now - last >= 60000) {
+                        sessionStorage.setItem('bootReloadAt', String(now));
+                        allowed = true;
+                    }
+                } catch (e) {}
+                if (allowed) {
+                    location.reload();
+                    return;
+                }
+                boot.innerHTML =
+                    'Die Seite konnte nicht geladen werden.<br>' +
+                    '<button onclick="location.reload()">Neu laden</button>' +
+                    '<div style="margin-top:1rem;font-size:0.75rem;color:#4b5563">Code: boot</div>';
+            }, 8000);
+
             if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
+                window.addEventListener('load', function () {
                     navigator.serviceWorker.register('/havag-next/sw.js', {
                         scope: '/havag-next/',
                     });
