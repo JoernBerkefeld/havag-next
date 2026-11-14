@@ -11,6 +11,17 @@ export const PLACES = {
         lat: 51.484827,
         lon: 11.994756,
     },
+    // Same stop as home, other direction: shown only while the home place is active.
+    homeHbf: {
+        key: 'home-hbf',
+        label: 'Zuhause',
+        stopId: '3937',
+        line: '10',
+        direction: 'Hauptbahnhof',
+        heading: 'Linie 10 → Hauptbahnhof',
+        lat: 51.484827,
+        lon: 11.994756,
+    },
     kita: {
         key: 'kita',
         label: 'Kita',
@@ -24,6 +35,17 @@ export const PLACES = {
 };
 
 export const MODES = ['auto', 'home', 'kita'];
+export const HOME_DIRECTIONS = ['kita', 'hbf'];
+
+/**
+ * @param {'home'|'kita'} placeKey the resolved place
+ * @param {'kita'|'hbf'} homeDirection direction chosen while at home
+ * @returns {object} the place to query: at home the chosen direction, otherwise the Kita stop
+ */
+export function placeFor(placeKey, homeDirection) {
+    if (placeKey === 'kita') return PLACES.kita;
+    return homeDirection === 'hbf' ? PLACES.homeHbf : PLACES.home;
+}
 
 const EARTH_RADIUS_M = 6_371_000;
 const rad = (deg) => (deg * Math.PI) / 180;

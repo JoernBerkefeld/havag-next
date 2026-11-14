@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { MODES, PLACES, resolvePlaceKey } from './places.js';
+import { MODES, placeFor, resolvePlaceKey } from './places.js';
 
 const STORAGE_KEY = 'placeMode';
 const LOCATION_REFRESH_MS = 30_000;
@@ -20,6 +20,8 @@ function readMode() {
  */
 export function usePlace() {
     const [mode, setModeState] = useState(readMode);
+    // Not remembered: every start at home shows the way to the Kita first.
+    const [homeDirection, setHomeDirection] = useState('kita');
     const [position, setPosition] = useState(null);
     const [locationFailed, setLocationFailed] = useState(false);
 
@@ -69,7 +71,10 @@ export function usePlace() {
     return {
         mode,
         setMode,
-        place: PLACES[placeKey],
+        placeKey,
+        place: placeFor(placeKey, homeDirection),
+        homeDirection,
+        setHomeDirection,
         hasPosition: position !== null,
         locationFailed,
     };

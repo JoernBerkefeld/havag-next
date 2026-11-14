@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { PLACES, distanceMeters, nearestPlaceKey, resolvePlaceKey } from '../src/places.js';
+import { PLACES, distanceMeters, nearestPlaceKey, placeFor, resolvePlaceKey } from '../src/places.js';
 
 test('distanceMeters is zero for the same point and plausible between the two stops', () => {
     assert.equal(distanceMeters(PLACES.home, PLACES.home), 0);
@@ -32,6 +32,18 @@ test('resolvePlaceKey: auto follows the position and falls back to home without 
     const atKita = { lat: PLACES.kita.lat, lon: PLACES.kita.lon };
     assert.equal(resolvePlaceKey('auto', atKita), 'kita');
     assert.equal(resolvePlaceKey('auto', null), 'home');
+});
+
+test('placeFor: at home the chosen direction, at the Kita always the way home', () => {
+    assert.equal(placeFor('home', 'kita'), PLACES.home);
+    assert.equal(placeFor('home', 'hbf'), PLACES.homeHbf);
+    assert.equal(placeFor('kita', 'hbf'), PLACES.kita);
+});
+
+test('the home stop serves both directions from the same stop and has its own key', () => {
+    assert.equal(PLACES.homeHbf.stopId, PLACES.home.stopId);
+    assert.equal(PLACES.homeHbf.direction, 'Hauptbahnhof');
+    assert.notEqual(PLACES.homeHbf.key, PLACES.home.key);
 });
 
 test('the places point at the right stops, lines and directions', () => {

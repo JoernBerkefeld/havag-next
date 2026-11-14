@@ -2,14 +2,16 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchNext } from './api/havag.js';
 import InstallBanner from './InstallBanner.jsx';
 import { delayMinutes, formatClock, formatClockSeconds, formatCountdown } from './format.js';
-import { MODES } from './places.js';
+import { HOME_DIRECTIONS, MODES } from './places.js';
 import { usePlace } from './usePlace.js';
 
 const REFRESH_MS = 30_000;
 const MODE_LABELS = { auto: 'Auto', home: 'Zuhause', kita: 'Kita' };
+const DIRECTION_LABELS = { kita: 'Kita', hbf: 'Hauptbahnhof' };
 
 export default function App() {
-    const { mode, setMode, place, hasPosition, locationFailed } = usePlace();
+    const { mode, setMode, placeKey, place, homeDirection, setHomeDirection, hasPosition, locationFailed } =
+        usePlace();
     const [data, setData] = useState(null); // { next, skipped, fetchedAt, placeKey }
     const [error, setError] = useState(false);
     const [now, setNow] = useState(() => Date.now());
@@ -92,6 +94,31 @@ export default function App() {
                             {MODE_LABELS[m]}
                         </button>
                     ))}
+                </div>
+                <div className="h-9">
+                    {placeKey === 'home' && (
+                        <div
+                            role="group"
+                            aria-label="Richtung"
+                            className="flex gap-1 rounded-full bg-gray-900 p-1 text-sm"
+                        >
+                            {HOME_DIRECTIONS.map((d) => (
+                                <button
+                                    key={d}
+                                    type="button"
+                                    aria-pressed={homeDirection === d}
+                                    onClick={() => setHomeDirection(d)}
+                                    className={`rounded-full px-4 py-1.5 font-medium ${
+                                        homeDirection === d
+                                            ? 'bg-gray-700 text-white'
+                                            : 'text-gray-500'
+                                    }`}
+                                >
+                                    {DIRECTION_LABELS[d]}
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
                 <p className="h-4 text-xs text-gray-500">{modeHint}</p>
             </div>
