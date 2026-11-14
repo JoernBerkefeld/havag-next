@@ -95,31 +95,6 @@ export default function App() {
                         </button>
                     ))}
                 </div>
-                <div className="h-9">
-                    {placeKey === 'home' && (
-                        <div
-                            role="group"
-                            aria-label="Richtung"
-                            className="flex gap-1 rounded-full bg-gray-900 p-1 text-sm"
-                        >
-                            {HOME_DIRECTIONS.map((d) => (
-                                <button
-                                    key={d}
-                                    type="button"
-                                    aria-pressed={homeDirection === d}
-                                    onClick={() => setHomeDirection(d)}
-                                    className={`rounded-full px-4 py-1.5 font-medium ${
-                                        homeDirection === d
-                                            ? 'bg-gray-700 text-white'
-                                            : 'text-gray-500'
-                                    }`}
-                                >
-                                    {DIRECTION_LABELS[d]}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </div>
                 <p className="h-4 text-xs text-gray-500">{modeHint}</p>
             </div>
 
@@ -171,6 +146,31 @@ export default function App() {
                 </p>
             )}
 
+            <div className="h-9">
+                {placeKey === 'home' && (
+                    <div
+                        role="group"
+                        aria-label="Richtung"
+                        className="flex gap-1 rounded-full bg-gray-900 p-1 text-sm"
+                    >
+                        {HOME_DIRECTIONS.map((d) => (
+                            <button
+                                key={d}
+                                type="button"
+                                aria-pressed={homeDirection === d}
+                                onClick={() => setHomeDirection(d)}
+                                className={`rounded-full px-4 py-1.5 font-medium ${
+                                    homeDirection === d
+                                        ? 'bg-gray-700 text-white'
+                                        : 'text-gray-500'
+                                }`}
+                            >
+                                {DIRECTION_LABELS[d]}
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
             <InstallBanner />
         </main>
     );
