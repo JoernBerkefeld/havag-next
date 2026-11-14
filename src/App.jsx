@@ -1,13 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchNext } from './api/havag.js';
 import InstallBanner from './InstallBanner.jsx';
-import {
-    delayMinutes,
-    describeError,
-    formatClock,
-    formatClockSeconds,
-    formatCountdown,
-} from './format.js';
+import { delayMinutes, formatClock, formatClockSeconds, formatCountdown } from './format.js';
 import { HOME_DIRECTIONS, MODES } from './places.js';
 import { usePlace } from './usePlace.js';
 
@@ -19,7 +13,7 @@ export default function App() {
     const { mode, setMode, placeKey, place, homeDirection, setHomeDirection, hasPosition, locationFailed } =
         usePlace();
     const [data, setData] = useState(null); // { next, skipped, fetchedAt, placeKey }
-    const [error, setError] = useState(null); // reason text of the last failed refresh
+    const [error, setError] = useState(false);
     const [now, setNow] = useState(() => Date.now());
     const controller = useRef(null);
 
@@ -30,9 +24,9 @@ export default function App() {
         try {
             const result = await fetchNext(place, ctrl.signal);
             setData({ ...result, fetchedAt: Date.now(), placeKey: place.key });
-            setError(null);
+            setError(false);
         } catch (e) {
-            if (e.name !== 'AbortError') setError(describeError(e));
+            if (e.name !== 'AbortError') setError(true);
         }
     }, [place]);
 
@@ -109,12 +103,7 @@ export default function App() {
             </h1>
 
             {!view && !error && <p className="text-2xl text-gray-400">Lade …</p>}
-            {!view && error && (
-                <div>
-                    <p className="text-2xl text-red-400">Fahrplan nicht abrufbar</p>
-                    <p className="mt-2 text-sm text-gray-500">{error}</p>
-                </div>
-            )}
+            {!view && error && <p className="text-2xl text-red-400">Fahrplan nicht abrufbar</p>}
 
             {view && !next && <p className="text-3xl text-gray-300">Keine Abfahrt gefunden</p>}
 
@@ -181,7 +170,7 @@ export default function App() {
 
             {view && error && (
                 <p className="text-lg text-amber-400">
-                    Fahrplan nicht abrufbar ({error}) · Stand {formatClockSeconds(view.fetchedAt)}
+                    Fahrplan nicht abrufbar · Stand {formatClockSeconds(view.fetchedAt)}
                 </p>
             )}
 

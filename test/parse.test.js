@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseDepartures, selectNext, toTimestamp } from '../src/api/parse.js';
-import { delayMinutes, describeError, formatClock, formatCountdown } from '../src/format.js';
+import { delayMinutes, formatClock, formatCountdown } from '../src/format.js';
 import { buildRequest } from '../src/api/havag.js';
 
 const DIR_SOLTAUER = 'Halle (Saale), Soltauer Str.';
@@ -133,10 +133,4 @@ test('buildRequest uses Halle date/time and the stop id', () => {
     const other = JSON.parse(buildRequest(new Date(), '5237'));
     assert.equal(other.svcReqL[0].req.stbLoc.extId, '5237');
     assert.equal(other.svcReqL[0].req.stbLoc.lid, 'A=1@L=5237@');
-});
-
-test('describeError tells a network problem from a server error and an unreadable answer', () => {
-    assert.match(describeError(new TypeError('Failed to fetch')), /kein Netz/);
-    assert.match(describeError(new Error('HTTP 503')), /HTTP 503/);
-    assert.match(describeError(new Error('HAFAS error: FAIL')), /unbrauchbar/);
 });

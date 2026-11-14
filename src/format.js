@@ -43,16 +43,3 @@ export function delayMinutes(plannedMs, actualMs) {
     if (actualMs == null) return null;
     return Math.round((actualMs - plannedMs) / 60_000);
 }
-
-/**
- * Short reason why the timetable could not be loaded, shown small under the message.
- *
- * @param {unknown} error what the request threw
- * @returns {string} German reason: no network, server error, or unreadable answer
- */
-export function describeError(error) {
-    const message = error instanceof Error ? error.message : '';
-    if (error instanceof TypeError) return 'kein Netz oder Server nicht erreichbar';
-    if (message.startsWith('HTTP')) return `Server antwortet mit Fehler (${message})`;
-    return 'Antwort der Fahrplanauskunft unbrauchbar';
-}
