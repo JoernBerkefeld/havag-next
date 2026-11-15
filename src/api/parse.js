@@ -55,6 +55,19 @@ export function parseDepartures(raw) {
 }
 
 /**
+ * A line often runs to a different last stop depending on the day (for example only to a
+ * turnaround stop on Sundays), so a direction can list several last stops that all count.
+ *
+ * @param {{direction: string}} departure parsed departure
+ * @param {string|string[]} direction last stop name part, or several
+ * @returns {boolean} true if the departure heads to one of the given last stops
+ */
+export function matchesDirection(departure, direction) {
+    const text = departure.direction.toLowerCase();
+    return [direction].flat().some((d) => text.includes(d.toLowerCase()));
+}
+
+/**
  * Picks the next departure of a line toward a direction that has not left yet.
  * Cancelled departures before it are returned separately so the UI can mention them.
  *
@@ -63,9 +76,8 @@ export function parseDepartures(raw) {
  * @returns {{next: object|null, skipped: object[]}} next departure plus cancelled ones ahead of it
  */
 export function selectNext(departures, { line, direction, nowMs }) {
-    const dir = direction.toLowerCase();
     const candidates = departures
-        .filter((d) => d.line === line && d.direction.toLowerCase().includes(dir))
+        .filter((d) => d.line === line && matchesDirection(d, direction))
         .map((d) => ({ ...d, effectiveMs: d.actualMs ?? d.plannedMs }))
         .filter((d) => d.effectiveMs >= nowMs)
         .sort((a, b) => a.effectiveMs - b.effectiveMs);

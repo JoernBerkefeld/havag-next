@@ -1,4 +1,4 @@
-import { toTimestamp } from './parse.js';
+import { matchesDirection, toTimestamp } from './parse.js';
 
 const CANDIDATES_PER_ROUTE = 2;
 
@@ -36,9 +36,8 @@ export function parseArrival(raw, { stopId, destination }) {
  */
 export function reachableDepartures(departures, route, nowMs) {
     const earliest = Math.floor(nowMs / 60_000) * 60_000 + route.walkMinutes * 60_000;
-    const dir = route.direction.toLowerCase();
     return departures
-        .filter((d) => d.line === route.line && d.direction.toLowerCase().includes(dir))
+        .filter((d) => d.line === route.line && matchesDirection(d, route.direction))
         .map((d) => ({ ...d, effectiveMs: d.actualMs ?? d.plannedMs }))
         .filter((d) => !d.cancelled && d.effectiveMs >= earliest)
         .sort((a, b) => a.effectiveMs - b.effectiveMs)

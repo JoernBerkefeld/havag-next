@@ -6,7 +6,8 @@ export const PLACES = {
         label: 'Zuhause',
         stopId: '3937', // Halle (Saale), Betriebshof Freiimfelder Str.
         line: '10',
-        direction: 'Soltauer Str.',
+        // Some trips (Sundays) end earlier, at Schwimmhalle; both pass the Kita stop.
+        direction: ['Soltauer Str.', 'Schwimmhalle'],
         heading: 'Linie 10 → Soltauer Str.',
         lat: 51.484827,
         lon: 11.994756,

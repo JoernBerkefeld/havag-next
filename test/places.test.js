@@ -56,7 +56,7 @@ test('the way to the station compares the two home stops and their walks', () =>
 test('the places point at the right stops, lines and directions', () => {
     assert.deepEqual(
         [PLACES.home.stopId, PLACES.home.line, PLACES.home.direction],
-        ['3937', '10', 'Soltauer Str.']
+        ['3937', '10', ['Soltauer Str.', 'Schwimmhalle']]
     );
     assert.deepEqual(
         [PLACES.kita.stopId, PLACES.kita.line, PLACES.kita.direction],

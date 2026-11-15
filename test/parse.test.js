@@ -134,3 +134,19 @@ test('buildRequest uses Halle date/time and the stop id', () => {
     assert.equal(other.svcReqL[0].req.stbLoc.extId, '5237');
     assert.equal(other.svcReqL[0].req.stbLoc.lid, 'A=1@L=5237@');
 });
+
+test('a direction can list several last stops, for example the Sunday turnaround', () => {
+    const dirs = ['Soltauer Str.', 'Schwimmhalle'];
+    const now = Date.UTC(2026, 10, 13, 0, 0);
+    const list = parseDepartures(
+        raw([
+            jny(0, 'Halle (Saale), Schwimmhalle', '100000'),
+            jny(0, 'Halle (Saale), Hauptbahnhof (Tram/Bus)', '100500'),
+        ])
+    );
+    assert.equal(selectNext(list, { line: '10', direction: dirs, nowMs: now }).next.plannedMs > 0, true);
+    assert.equal(
+        selectNext(list, { line: '10', direction: 'Soltauer Str.', nowMs: now }).next,
+        null
+    );
+});
